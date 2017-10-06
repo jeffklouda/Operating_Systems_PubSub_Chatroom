@@ -14,16 +14,13 @@ Thread::~Thread(){
 }
 
 void Thread::start(thread_func func, void* arg){
-	//switch (func){
-		//case (publish): 
-		//pthread_create(&thread_var, NULL, this->publish
-	//}
+    pthread_create(thread_var, NULL, func, arg);
 }
 
 void Thread::join(void** result){
-
+    pthread_join(thread_var, result);
 }
 
 void Thread::detach(){
-
+    pthread_detach(thread_var);
 }
