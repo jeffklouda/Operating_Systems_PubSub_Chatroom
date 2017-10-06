@@ -41,7 +41,12 @@ void Client::subscribe(const char *topic, Callback *callback) {
 }
 
 void Client::unsubscribe(const char *topic) {
-
+    Message unsubMessage;
+    unsubMessage.type  = "UNSUBSCRIBE";
+    unsubMessage.topic = topic;
+    message.sender = name;
+    topicCallbacks.erase (topicCallbacks.find(topic));
+    outMessages.push_back(unsubMessage);
 }
 
 int Client::connect() {
