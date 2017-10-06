@@ -22,7 +22,12 @@ void Client::publish(const char *topic, const char *message, size_t length){
 }
 
 void Client::subscribe(const char *topic, Callback *callback) {
-
+    Message subMessage;
+    message.type = "SUBSCRIBE";
+    message.topic = topic;
+    message.sender = name;
+    topicCallbacks.insert (std::pair<string, Callback> (topic, callback));
+    outMessages.push_back(subMessage);
 }
 
 void Client::unsubscribe(const char *topic) {
@@ -80,6 +85,7 @@ void Client::run() {
         this->shutdown();
     }
     // Identify client
+
 }
 
 bool Client::shutdown() {
