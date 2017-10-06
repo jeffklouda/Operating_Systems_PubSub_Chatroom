@@ -3,10 +3,9 @@
 //NECESSARY INCLUDES
 #include <string.h>
 #include <string>
+#include <deque>
 
 #pragma once
-
-enum thread_func { publish, retrieve, callback };
 
 struct Message{
     std::string type;
@@ -23,14 +22,18 @@ class Client{
         void publish(const char*, const char*, size_t);
         void subscribe(const char*, Callback*);
         void unsubscribe(const char*);
+        int  connect();
         void disconnect();
         void run();
         bool shutdown();
     private:
-        const char* name;
-        const char* host;
-        const char* port;
-        const char* cid;
+        const char*         name;
+        const char*         host;
+        const char*         port;
+        const char*         cid;
+        bool                running;
+        int                 socket_fd;
+        std::deque<Message> messageDeque;
 };
 
 class Callback{
