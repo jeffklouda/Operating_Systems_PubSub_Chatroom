@@ -4,6 +4,7 @@
 #include <string.h>
 #include <string>
 #include <deque>
+#include <map>
 
 #pragma once
 
@@ -33,7 +34,8 @@ class Client{
         const char*         cid;
         bool                running;
         int                 socket_fd;
-        std::deque<Message> messageDeque;
+        std::deque<Message> outMessages;
+        std::map<std::string, Callback> topicCallbacks;
 };
 
 class Callback{
