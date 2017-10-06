@@ -6,7 +6,7 @@
 
 #pragma once
 
-enum func { publish, retrieve, callback };
+enum thread_func { publish, retrieve, callback };
 
 struct Message{
     std::string type;
@@ -27,6 +27,7 @@ class Client{
         void run();
         bool shutdown();
     private:
+        const char* name;
         const char* host;
         const char* port;
         const char* cid;
@@ -49,6 +50,7 @@ class Thread{
     private:
         thread_func func;
         void*       arg;
+        pthread_t   thread_var;
 };
 
 // vim: set expandtab sts=4 sw=4 ts=8 ft=cpp: ----------------------------------
