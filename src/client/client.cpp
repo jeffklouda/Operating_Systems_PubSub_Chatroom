@@ -19,6 +19,16 @@ Client::Client(const char *host, const char *port, const char *cid) {
 Client::~Client() {}
 
 void Client::publish(const char *topic, const char *message, size_t length){
+    std::string str_topic(topic, strnlen(topic, MAXLEN));
+    std::string str_message(message, strnlen(message, MAXLEN));
+    std::string str_sender(name, strnlen(name, MAXLEN));
+    Message temp_message = {
+        "MESSAGE",        
+        str_topic,
+        str_sender,
+        atoi(cid),
+        str_message
+    };
 }
 
 void Client::subscribe(const char *topic, Callback *callback) {
