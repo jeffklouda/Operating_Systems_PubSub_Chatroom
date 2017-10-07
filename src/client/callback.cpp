@@ -6,11 +6,11 @@
 #include <iostream>
 
 //HEADER FILES
-#include "client.h"
+#include "../../include/ps_client/client.h"
 
 class EchoCallback : public Callback {
 public:
     void run(Message &m) {
-        std::cout << "Echo Callback: " << message.body << std::endl;
+        std::cout << "Echo Callback: " << m.body << std::endl;
     }
 };

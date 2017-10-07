@@ -1,14 +1,20 @@
 // Necssary Includes
 #include <vector>
+#include <utility>
 #include <string.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
+#include <netdb.h>
+#include <iostream>
 
-#include "client.h"
+#include "../../include/ps_client/client.h"
+
+#define MAXLEN 1000
 
 Client::Client(const char *host, const char *port, const char *cid) {
     this->host = host;
@@ -22,21 +28,24 @@ void Client::publish(const char *topic, const char *message, size_t length){
     std::string str_topic(topic, strnlen(topic, MAXLEN));
     std::string str_message(message, strnlen(message, MAXLEN));
     std::string str_sender(name, strnlen(name, MAXLEN));
+    int iCid = atoi(cid);
     Message temp_message = {
         "MESSAGE",        
         str_topic,
         str_sender,
-        atoi(cid),
+        iCid,
         str_message
     };
 }
 
 void Client::subscribe(const char *topic, Callback *callback) {
     Message subMessage;
-    message.type = "SUBSCRIBE";
-    message.topic = topic;
-    message.sender = name;
-    topicCallbacks.insert (std::pair<string, Callback> (topic, callback));
+    subMessage.type = "SUBSCRIBE";
+    subMessage.topic = topic;
+    subMessage.sender = name;
+    std::pair <std::string, Callback*> newTopicCallback;
+    newTopicCallback = std::make_pair(topic, callback);
+    topicCallbacks.insert (newTopicCallback);
     outMessages.push_back(subMessage);
 }
 
@@ -44,18 +53,17 @@ void Client::unsubscribe(const char *topic) {
     Message unsubMessage;
     unsubMessage.type  = "UNSUBSCRIBE";
     unsubMessage.topic = topic;
-    message.sender = name;
+    unsubMessage.sender = name;
     topicCallbacks.erase (topicCallbacks.find(topic));
     outMessages.push_back(unsubMessage);
 }
 
-int Client::connect() {
+int Client::serverConnect() {
 
-    struct addrinfo hints = {
-        .ai_family      = AF_UNSPEC,    // return IPv4 and IPv6 choices
-        .ai_socktype    = SOCK_STREAM   // Use TCP
-        .ai_flags       = AI_PASSIVE    // Use all interfaces
-    };
+    struct addrinfo hints;
+    hints.ai_family      = AF_UNSPEC;       // return IPv4 and IPv6 choices
+    hints.ai_socktype    = SOCK_STREAM;     // Use TCP
+    hints.ai_flags       = AI_PASSIVE;      // Use all interfaces
     
     struct addrinfo* results;
     int status;
@@ -78,7 +86,7 @@ int Client::connect() {
         return -1;
     }
 
-    if ( connect(s, rp->ai_addr, rp->ai_addrlen) < 0 ) {
+    if ( connect(socket_fd, rp->ai_addr, rp->ai_addrlen) < 0 ) {
         
         fprintf(stderr, "Client: Unable to connect: %s\n",
             strerror(errno));
@@ -90,13 +98,13 @@ int Client::connect() {
 }
 
 void Client::disconnect() {
-    closesocket(socket_fd);
+    close(socket_fd);
 }
 
 void Client::run() {
-    if (this->connect() < 0) {
-        fprintf(stderr, "Client: Unable to connect to server\n
-            Shutting down...\n");
+    if (this->serverConnect() < 0) {
+        fprintf(stderr, "Client: Unable to connect to server\n"
+            "Shutting down...\n");
         this->shutdown();
     }
     // Identify client
@@ -104,5 +112,5 @@ void Client::run() {
 }
 
 bool Client::shutdown() {
-
+    return true;
 }

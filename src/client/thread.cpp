@@ -2,7 +2,7 @@
 // Implementation of thread class
 // Authors: Matthew D'Alonzo and Jeff Klouda
 
-#include "client.h"
+#include "../../include/ps_client/client.h"
 #include <pthread.h>
 
 Thread::Thread(){

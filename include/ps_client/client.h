@@ -8,12 +8,21 @@
 
 #pragma once
 
+struct thread_func {};
+
 struct Message{
     std::string type;
     std::string topic;
     std::string sender;
     size_t      nonce;
     std::string body;
+};
+
+class Callback{
+    public:
+        Callback();
+        ~Callback();
+        virtual void run(Message&);
 };
 
 class Client{
@@ -23,7 +32,7 @@ class Client{
         void publish(const char*, const char*, size_t);
         void subscribe(const char*, Callback*);
         void unsubscribe(const char*);
-        int  connect();
+        int  serverConnect();
         void disconnect();
         void run();
         bool shutdown();
@@ -35,14 +44,7 @@ class Client{
         bool                running;
         int                 socket_fd;
         std::deque<Message> outMessages;
-        std::map<std::string, Callback> topicCallbacks;
-};
-
-class Callback{
-    public:
-        Callback();
-        ~Callback();
-        virtual void run(Message&);
+        std::map<std::string, Callback*> topicCallbacks;
 };
 
 class Thread{
