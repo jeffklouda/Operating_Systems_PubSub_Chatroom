@@ -6,7 +6,7 @@
 #include <iostream>
 
 //HEADER FILES
-#include "../../include/ps_client/client.h"
+#include "ps_client/client.h"
 
 class EchoCallback : public Callback {
 public:
