@@ -1,7 +1,6 @@
 // Necssary Includes
 #include <vector>
 #include <utility>
-#include <string.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,45 +55,6 @@ void Client::unsubscribe(const char *topic) {
     unsubMessage.sender = name;
     topicCallbacks.erase (topicCallbacks.find(topic));
     outMessages.push_back(unsubMessage);
-}
-
-int Client::serverConnect() {
-
-    struct addrinfo hints;
-    hints.ai_family      = AF_UNSPEC;       // return IPv4 and IPv6 choices
-    hints.ai_socktype    = SOCK_STREAM;     // Use TCP
-    hints.ai_flags       = AI_PASSIVE;      // Use all interfaces
-    
-    struct addrinfo* results;
-    int status;
-    
-    if ((status = getaddrinfo(host, port, &hints, &results)) != 0) {
-        
-        fprintf(stderr, "Client: getaddrinfo failed: %s\n",
-            gai_strerror(status));
-        return -1;
-    }
-    
-    socket_fd = -1;
-    struct addrinfo *rp = results;
-
-    if ((socket_fd = socket(rp->ai_family, rp->ai_socktype, 
-        rp->ai_protocol)) < 0) {
-        
-        fprintf (stderr, "Client: Unable to make socket: %s\n", 
-            strerror(errno));
-        return -1;
-    }
-
-    if ( connect(socket_fd, rp->ai_addr, rp->ai_addrlen) < 0 ) {
-        
-        fprintf(stderr, "Client: Unable to connect: %s\n",
-            strerror(errno));
-        return -1;
-    }
-
-    return socket_fd;
-
 }
 
 void Client::disconnect() {
