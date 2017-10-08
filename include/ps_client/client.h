@@ -10,6 +10,15 @@
 
 struct thread_func {};
 
+class Socket {
+    public:
+        Socket();
+        ~Socket();
+        int sock_connect(const char*, const char*);
+    private:
+        int sfd;    //  socket file descriptor
+};
+
 struct Message{
     std::string type;
     std::string topic;
@@ -58,6 +67,8 @@ class Thread{
         thread_func func;
         void*       arg;
         pthread_t   thread_var;
+        Socket      sock;
 };
+
 
 // vim: set expandtab sts=4 sw=4 ts=8 ft=cpp: ----------------------------------
