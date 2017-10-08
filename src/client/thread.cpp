@@ -14,7 +14,7 @@ Thread::~Thread(){
 }
 
 void Thread::start(thread_func func, void* arg){
-    pthread_create(thread_var, NULL, func, arg);
+    pthread_create(&thread_var, NULL, func, arg);
 }
 
 void Thread::join(void** result){
