@@ -12,7 +12,7 @@
 #include <netdb.h>
 #include <iostream>
 
-#include "../../include/ps_client/client.h"
+#include "ps_client/client.h"
 
 #define MAXLEN 1000
 
