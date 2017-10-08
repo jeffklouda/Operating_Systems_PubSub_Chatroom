@@ -8,7 +8,7 @@
 
 #pragma once
 
-struct thread_func {};
+typedef void* (*thread_func)(void*);
 
 class Socket {
     public:
