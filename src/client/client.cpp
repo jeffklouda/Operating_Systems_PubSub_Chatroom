@@ -41,7 +41,7 @@ void Client::subscribe(const char *topic, Callback *callback) {
     Message subMessage;
     subMessage.type = "SUBSCRIBE";
     subMessage.topic = topic;
-    subMessage.sender = name;
+    subMessage.sender = cid;
     std::pair <std::string, Callback*> newTopicCallback;
     newTopicCallback = std::make_pair(topic, callback);
     topicCallbacks.insert (newTopicCallback);
@@ -52,12 +52,17 @@ void Client::unsubscribe(const char *topic) {
     Message unsubMessage;
     unsubMessage.type  = "UNSUBSCRIBE";
     unsubMessage.topic = topic;
-    unsubMessage.sender = name;
+    unsubMessage.sender = cid;
     topicCallbacks.erase (topicCallbacks.find(topic));
     outMessages.push_back(unsubMessage);
 }
 
 void Client::disconnect() {
+    Message dMessage;
+    dMessage.type  = "DISCONNECT";
+    dMessage.sender = this->cid;
+    dMessage.nonce = this->nonce;
+    outMessages.push_back(dMessage);
 }
 
 void Client::run() {
