@@ -2,6 +2,8 @@
 //Authors: Jeff Klouda and Matthew D'Alonzo
 
 #include <iostream>
+#include <sys/types.h>
+#include <sys/socket.h>
 
 #include "ps_client/client.h"
 
@@ -12,17 +14,17 @@ void* publishing_thread(void* arg){
 	int sock_fd = publishing_socket.sock_connect(ta->host, ta->port);
     
     while(true){
-        if(!ta->out_messages.empty()){
-            sem_wait(&ta->out_lock);
-            Message msg_to_post = ta->out_messages[0];
-            ta->out_messages.pop_front();
-            msg_type = msg_to_post->type;
+        if(!ta->out_messages->empty()){
+            sem_wait(ta->out_lock);
+            Message msg_to_post = ta->out_messages->front();
+            ta->out_messages->pop_front();
+            std::string msg_type = msg_to_post.type;
 
             if (msg_type == "MESSAGE"){
-                std::string msg_line = "PUBLISH " + msg_to_post.topic + " " + std::to_string(msg_to_post.body.size()) + "\n" + msg_to_post->body;
+                std::string msg_line = "PUBLISH " + msg_to_post.topic + " " + std::to_string(msg_to_post.body.size()) + "\n" + msg_to_post.body;
                 send(sock_fd, msg_line.c_str(), msg_line.size(), 0);
             }else if (msg_type == "IDENTIFY"){
-                std::string id_line = "IDENTIFY " + ta->cid + " " + ta->nonce + "\n";
+                std::string id_line = "IDENTIFY " + std::string(ta->cid) + " " + std::to_string(ta->nonce) + "\n";
                 send(sock_fd, id_line.c_str(), id_line.size(), 0);
             }else if (msg_type == "SUBSCRIBE"){
                 std::string sub_line = "SUBSCRIBE " + msg_to_post.topic + "\n";
@@ -31,15 +33,15 @@ void* publishing_thread(void* arg){
                 std::string unsub_line = "UNSUBSCRIBE " + msg_to_post.topic + "\n";
                 send(sock_fd, unsub_line.c_str(), unsub_line.size(), 0);
             }else if (msg_type == "RETRIEVE"){
-                std::string retrieve_line = "RETRIEVE " + ta->cid + "\n";
+                std::string retrieve_line = "RETRIEVE " + std::string(ta->cid) + "\n";
                 send(sock_fd, retrieve_line.c_str(), retrieve_line.size(), 0);
             }else if (msg_type == "DISCONNECT"){
-                std::string disconnect_line = "DISCONNECT " + ta->cid + " " + ta->nonce + "\n";
-                send(sock_fd, disconnect_line.c_str(), disconnect_line.size), 0);
+                std::string disconnect_line = "DISCONNECT " + std::string(ta->cid) + " " + std::to_string(ta->nonce) + "\n";
+                send(sock_fd, disconnect_line.c_str(), disconnect_line.size(), 0);
             }else{
                 std::cout << "Error: Could not understand message type" << std::endl;
             }
-            sem_post(&ta->out_lock);
+            sem_post(ta->out_lock);
         }
 
     }
@@ -56,8 +58,9 @@ void* receiving_thread(void* arg){
             continue;
         }
 
-        ta->inbox.push_back(buffer);
-
+        sem_wait(ta->callback_lock);
+        ta->inbox->push_back(buffer);
+        sem_post(ta->callback_lock);
     }
 }
 
