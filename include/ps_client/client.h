@@ -16,6 +16,7 @@ struct Message{
     std::string sender;
     size_t      nonce;
     std::string body;
+    int         length;
 };
 
 class Callback{
