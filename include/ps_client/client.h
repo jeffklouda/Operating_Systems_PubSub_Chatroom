@@ -72,4 +72,8 @@ class Thread{
 };
 
 
+void* publishing_thread(void*);
+void* receiving_thread(void*);
+void* callbacks_thread(void*);
+
 // vim: set expandtab sts=4 sw=4 ts=8 ft=cpp: ----------------------------------
