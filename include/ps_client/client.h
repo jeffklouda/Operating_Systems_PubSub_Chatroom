@@ -51,6 +51,7 @@ class Client{
         const char*         host;
         const char*         port;
         const char*         cid;
+        size_t              nonce;
         bool                running;
         int                 socket_fd;
         std::deque<Message> outMessages;
