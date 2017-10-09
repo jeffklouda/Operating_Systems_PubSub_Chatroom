@@ -4,21 +4,11 @@
 #include <string.h>
 #include <string>
 #include <deque>
+#include <queue>
 #include <map>
+#include <semaphore.h>
 
 #pragma once
-
-typedef void* (*thread_func)(void*);
-
-class Socket {
-    public:
-        Socket();
-        ~Socket();
-        int sock_connect(const char*, const char*);
-        void sock_disconnect();
-    private:
-        int sfd;    //  socket file descriptor
-};
 
 struct Message{
     std::string type;
@@ -33,6 +23,29 @@ class Callback{
         Callback();
         ~Callback();
         virtual void run(Message&);
+};
+
+struct thread_args {
+    const char* host;
+    const char* port;
+    const char* cid;
+    size_t      nonce;
+    std::deque<Message> *out_messages;
+    std::map<std::string, Callback*> *message_callbacks;
+    sem_t* out_lock;
+    sem_t* callback_lock;
+};
+
+typedef void* (*thread_func)(void*);
+
+class Socket {
+    public:
+        Socket();
+        ~Socket();
+        int sock_connect(const char*, const char*);
+        void sock_disconnect();
+    private:
+        int sfd;    //  socket file descriptor
 };
 
 class Client{
