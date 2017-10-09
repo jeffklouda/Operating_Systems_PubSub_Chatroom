@@ -64,6 +64,42 @@ void* receiving_thread(void* arg){
     }
 }
 
-void* callbacks_thread(void* arg){
-
+void* callbacks_thread(void* arg){ 
+    struct thread_args *ta = (struct thread_args *) arg;
+    if (!ta->inbox->empty()) {
+        std::string message = ta->inbox->front();
+        ta->inbox->pop_front();
+        size_t start = 0;
+        size_t end = message.find(" ");
+        if (message.substr (start, end - start - 1) == "MESSAGE") {
+            //  Process message with callback map
+            Message pMessage;
+            pMessage.type = "MESSAGE";
+            //  get topic
+            start = message.find("MESSAGE");
+            start = start + 8;
+            end = message.find(" ", start);
+            pMessage.topic = message.substr(start, end - 1);
+            start = end + 1;
+            //  get sender
+            start = message.find("FROM", start) + 5;
+            end = message.find(" ", start);
+            pMessage.sender = message.substr(start, end - 1);
+            start = end + 1;
+            //  get length
+            start = message.find("LENGTH", start) + 7;
+            end = message.find(" ", start);
+            pMessage.length = std::stoi(message.substr(start, end-1));
+            //  get body
+            start = end + 1;
+            end = message.find("\n", start);
+            pMessage.body = message.substr(start, end);
+            //  Look up topic in map
+            std::map<std::string, Callback*>::iterator it;
+            it = ta->message_callbacks->find(pMessage.topic);
+            if (it != ta->message_callbacks->end()) {
+                it->second->run(pMessage);
+            }
+        }
+    }
 }
