@@ -5,14 +5,6 @@
 
 #include "ps_client/client.h"
 
-ta->host
-ta->port
-ta->cid
-ta->nonce
-ta->out_messages
-ta->message_callbacks
-ta->out_lock
-ta->callback_lock
 
 void* publishing_thread(void* arg){
     struct thread_args *ta = (struct thread_args *) arg;
@@ -54,7 +46,19 @@ void* publishing_thread(void* arg){
 }
 
 void* receiving_thread(void* arg){
+    struct thread_args *ta = (struct thread_args *) arg;
+    Socket receiving_socket;
+	int sock_fd = receiving_socket.sock_connect(ta->host, ta->port);
 
+    char buffer[BUFSIZ];
+    while (true){
+        if (recv(sock_fd, buffer, BUFSIZ, 0) < 0) {
+            continue;
+        }
+
+        ta->inbox.push_back(buffer);
+
+    }
 }
 
 void* callbacks_thread(void* arg){
