@@ -24,3 +24,7 @@ void Thread::join(void** result){
 void Thread::detach(){
     pthread_detach(thread_var);
 }
+
+pthread_t Thread::get_thread_var(){
+    return thread_var;
+}

@@ -66,11 +66,13 @@ class Client{
         const char*         port;
         const char*         cid;
         size_t              nonce;
-        bool                running;
+        bool                disconnect_msg;
         int                 socket_fd;
         std::deque<Message> outMessages;
         std::deque<std::string> inbox;
         std::map<std::string, Callback*> topicCallbacks;
+        sem_t               out_lock;
+        sem_t               callback_lock;
 };
 
 class Thread{
@@ -80,6 +82,7 @@ class Thread{
         void start(thread_func, void*);
         void join(void**);
         void detach();
+        pthread_t get_thread_var();
     private:
         thread_func func;
         void*       arg;
