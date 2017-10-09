@@ -58,7 +58,6 @@ void Client::unsubscribe(const char *topic) {
 }
 
 void Client::disconnect() {
-    close(socket_fd);
 }
 
 void Client::run() {

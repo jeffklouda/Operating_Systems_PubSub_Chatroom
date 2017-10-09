@@ -15,6 +15,7 @@ class Socket {
         Socket();
         ~Socket();
         int sock_connect(const char*, const char*);
+        void sock_disconnect();
     private:
         int sfd;    //  socket file descriptor
 };

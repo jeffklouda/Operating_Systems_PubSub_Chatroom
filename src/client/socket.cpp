@@ -53,4 +53,10 @@ int Socket::sock_connect(const char* host, const char* port) {
     
     this->sfd = socket_fd;
     return socket_fd;
-}     
+}   
+
+void Socket::sock_disconnect() {
+    if (sfd >= 0) {
+        close(sfd);
+    }
+}
