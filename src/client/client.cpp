@@ -24,6 +24,7 @@ Client::Client(const char *host, const char *port, const char *cid) {
     iMessage.topic = "IDENTIFY";
     iMessage.sender = cid;
     iMessage.nonce = rand()%1000;
+    this->nonce = iMessage.nonce;
     outMessages.push_back(iMessage);
 }
 
@@ -33,12 +34,11 @@ void Client::publish(const char *topic, const char *message, size_t length){
     std::string str_topic(topic, strnlen(topic, MAXLEN));
     std::string str_message(message, strnlen(message, MAXLEN));
     std::string str_sender(name, strnlen(name, MAXLEN));
-    int iCid = atoi(cid);
     Message temp_message = {
         "MESSAGE",        
         str_topic,
         str_sender,
-        iCid,
+        nonce,
         str_message
     };
     outMessages.push_back(temp_message);
@@ -83,6 +83,7 @@ void Client::run() {
         cid,
         nonce,
         &outMessages,
+        &inbox,
         &topicCallbacks,
         &out_lock,
         &callback_lock
@@ -90,17 +91,15 @@ void Client::run() {
     Thread  publisher;
     Thread  receiver;
     Thread  callbacks;
-    publisher.start(publishing_thread,(void*)arg);
+    publisher.start(publishing_thread,(void*)&arg);
     publisher.detach();
-    receiver.start(receiving_thread, (void*)arg);
-    receiver.detatch();
-    callbacks_thread((void*)arg);
+    receiver.start(receiving_thread, (void*)&arg);
+    receiver.detach();
+    callbacks_thread((void*)&arg);
 }
 
 bool Client::shutdown() {
     return true;
 }
 
-void* publish(void * arg) {
-    queue<Message> *outQueue = (queue<Message> *) arg;
-}
+
