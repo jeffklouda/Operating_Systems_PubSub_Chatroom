@@ -8,9 +8,10 @@
 //HEADER FILES
 #include "ps_client/client.h"
 
-class EchoCallback : public Callback {
-public:
-    void run(Message &m) {
-        std::cout << "Echo Callback: " << m.body << std::endl;
-    }
-};
+//Callback::Callback(){}
+
+//Callback::~Callback(){}
+
+void EchoCallback::run(Message &m) {
+    std::cout << "Echo Callback: " << m.body << std::endl;
+}

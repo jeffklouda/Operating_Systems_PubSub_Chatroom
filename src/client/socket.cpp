@@ -1,5 +1,6 @@
 // socket.cpp: socket class
 
+#include <iostream>
 #include <utility>
 #include <string.h>
 #include <errno.h>
@@ -9,6 +10,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <netdb.h>
+#include <string>
 
 #include "ps_client/client.h"
 
@@ -18,6 +20,7 @@ Socket::Socket() {
 Socket::~Socket() {}
 
 int Socket::sock_connect(const char* host, const char* port) {
+
 
     struct addrinfo hints;
     hints.ai_family      = AF_UNSPEC;       // return IPv4 and IPv6 choices
@@ -35,28 +38,36 @@ int Socket::sock_connect(const char* host, const char* port) {
     }
 
     int socket_fd = -1;
-    struct addrinfo *rp = results;
+    //struct addrinfo *rp = results;
 
-    if ((socket_fd = socket(rp->ai_family, rp->ai_socktype,
-        rp->ai_protocol)) < 0) {
-        fprintf (stderr, "Client: Unable to make socket: %s\n",
-            strerror(errno));
-        return -1;
+    for (struct addrinfo *rp = results; rp != NULL && socket_fd < 0; rp = rp->ai_next) {
+
+        if ((socket_fd = socket(rp->ai_family, rp->ai_socktype,
+            rp->ai_protocol)) < 0) {
+            fprintf (stderr, "Client: Unable to make socket: %s\n",
+                strerror(errno));
+            continue;
+        }
+
+        if ( connect(socket_fd, rp->ai_addr, rp->ai_addrlen) < 0 ) {
+
+            fprintf(stderr, "Client: Unable to connect: %s\n",
+                strerror(errno));
+            socket_fd = -1;
+            continue;
+        }
     }
 
-    if ( connect(socket_fd, rp->ai_addr, rp->ai_addrlen) < 0 ) {
+    freeaddrinfo(results);
 
-        fprintf(stderr, "Client: Unable to connect: %s\n",
-            strerror(errno));
-        return -1;
-    }
-    
     this->sfd = socket_fd;
+    std::cout << "Connected successfully. socket_fd: " << socket_fd << std::endl;
     return socket_fd;
 }   
 
 void Socket::sock_disconnect() {
     if (sfd >= 0) {
         close(sfd);
+        sfd = -1;
     }
 }

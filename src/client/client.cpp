@@ -11,14 +11,16 @@
 #include <netdb.h>
 #include <iostream>
 #include <semaphore.h>
+#include <signal.h>
 
 #include "ps_client/client.h"
 
 #define MAXLEN 1000
 
 Client::Client(const char *host, const char *port, const char *cid) {
-    sem_init (&out_lock, 0, 0);
-    sem_init (&callback_lock, 0, 0);
+    sem_init (&out_lock, 0, 1);
+    sem_init (&callback_lock, 0, 1);
+    sem_init (&sock_lock, 0, 1);
 	this->disconnect_msg = false;
     this->host = host;
     this->port = port;
@@ -44,7 +46,11 @@ void Client::publish(const char *topic, const char *message, size_t length){
         nonce,
         str_message
     };
+
+    sem_wait(&out_lock);
+	std::cout << "temp_message: " << temp_message.type << std::endl;
     outMessages.push_back(temp_message);
+    sem_post(&out_lock);
 }
 
 void Client::subscribe(const char *topic, Callback *callback) {
@@ -95,7 +101,8 @@ void Client::run() {
         &inbox,
         &topicCallbacks,
         &out_lock,
-        &callback_lock
+        &callback_lock,
+        &sock_lock
     };
     Thread  publisher;
     Thread  receiver;
@@ -105,8 +112,10 @@ void Client::run() {
     receiver.start(receiving_thread, (void*)&arg);
     receiver.detach();
     while (!shutdown()){
+        signal(SIGPIPE, SIG_IGN);
         callbacks_thread((void*)&arg);
     }
+    std::cout << "AFTER SHUTDOWN\n";
     pthread_cancel(publisher.get_thread_var());
     pthread_cancel(receiver.get_thread_var());
 }

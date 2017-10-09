@@ -21,9 +21,14 @@ struct Message{
 
 class Callback{
     public:
-        Callback();
-        ~Callback();
-        virtual void run(Message&);
+        //Callback();
+        //~Callback();
+        virtual void run(Message&){};
+};
+
+class EchoCallback : public Callback{
+    public:
+        void run(Message&);
 };
 
 struct thread_args {
@@ -36,6 +41,7 @@ struct thread_args {
     std::map<std::string, Callback*> *message_callbacks;
     sem_t* out_lock;
     sem_t* callback_lock;
+    sem_t* sock_lock;
 };
 
 typedef void* (*thread_func)(void*);
@@ -74,7 +80,10 @@ class Client{
         std::map<std::string, Callback*> topicCallbacks;
         sem_t               out_lock;
         sem_t               callback_lock;
+        sem_t               sock_lock;
 };
+
+
 
 class Thread{
     public:
@@ -95,5 +104,7 @@ class Thread{
 void* publishing_thread(void*);
 void* receiving_thread(void*);
 void* callbacks_thread(void*);
+
+
 
 // vim: set expandtab sts=4 sw=4 ts=8 ft=cpp: ----------------------------------
