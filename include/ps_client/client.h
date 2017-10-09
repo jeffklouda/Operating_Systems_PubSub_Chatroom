@@ -31,6 +31,7 @@ struct thread_args {
     const char* cid;
     size_t      nonce;
     std::deque<Message> *out_messages;
+    std::deque<std::string> *inbox;
     std::map<std::string, Callback*> *message_callbacks;
     sem_t* out_lock;
     sem_t* callback_lock;
@@ -68,6 +69,7 @@ class Client{
         bool                running;
         int                 socket_fd;
         std::deque<Message> outMessages;
+        std::deque<std::string> inbox;
         std::map<std::string, Callback*> topicCallbacks;
 };
 
