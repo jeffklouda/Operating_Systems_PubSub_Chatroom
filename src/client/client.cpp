@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <iostream>
+#include <semaphore.h>
 
 #include "ps_client/client.h"
 
@@ -19,6 +20,11 @@ Client::Client(const char *host, const char *port, const char *cid) {
     this->host = host;
     this->port = port;
     this->cid = cid;
+    Message iMessage;
+    iMessage.topic = "IDENTIFY";
+    iMessage.sender = cid;
+    iMessage.nonce = rand()%1000;
+    outMessages.push_back(iMessage);
 }
 
 Client::~Client() {}
@@ -35,6 +41,7 @@ void Client::publish(const char *topic, const char *message, size_t length){
         iCid,
         str_message
     };
+    outMessages.push_back(temp_message);
 }
 
 void Client::subscribe(const char *topic, Callback *callback) {
@@ -66,15 +73,34 @@ void Client::disconnect() {
 }
 
 void Client::run() {
-    if (this->serverConnect() < 0) {
-        fprintf(stderr, "Client: Unable to connect to server\n"
-            "Shutting down...\n");
-        this->shutdown();
-    }
-    // Identify client
-
+    sem_t out_lock;
+    sem_t callback_lock;
+    sem_init (&out_lock, 0, 0);
+    sem_init (&callback_lock, 0, 0);
+    thread_args arg = {
+        host,
+        port,
+        cid,
+        nonce,
+        &outMessages,
+        &topicCallbacks,
+        &out_lock,
+        &callback_lock
+    };
+    Thread  publisher;
+    Thread  receiver;
+    Thread  callbacks;
+    publisher.start(publishing_thread,(void*)arg);
+    publisher.detach();
+    receiver.start(receiving_thread, (void*)arg);
+    receiver.detatch();
+    callbacks_thread((void*)arg);
 }
 
 bool Client::shutdown() {
     return true;
+}
+
+void* publish(void * arg) {
+    queue<Message> *outQueue = (queue<Message> *) arg;
 }
