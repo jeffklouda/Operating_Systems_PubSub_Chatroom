@@ -24,7 +24,7 @@ void* publishing_thread(void* arg){
             sem_post(ta->out_lock);
             //std::cout << "msg_to_post type after: " << msg_to_post.type << std::endl;
             std::string msg_type = msg_to_post.type;
-            //std::cout << "msg_type [" << msg_type << "]\n";
+            std::cout << "sending msg_type [" << msg_type << "]\n";
             if (msg_type == "MESSAGE"){
                 //std::cout << "IN Publish\n" << std::endl;
                 std::string msg_line = "PUBLISH " + msg_to_post.topic + " " + std::to_string(msg_to_post.body.size()) + "\n" + msg_to_post.body;
@@ -86,25 +86,26 @@ void* receiving_thread(void* arg){
     std::string rMessage = "RETRIEVE " + std::string(ta->cid) + "\n";
     char buffer[BUFSIZ];
     while (true){
-        /*sem_wait(ta->sock_lock);
+        //sem_wait(ta->sock_lock);
         if (send(sock_fd, rMessage.c_str(), rMessage.size(), 0) < 0) {
             fprintf(stderr,"send RETRIEVE failed: %s\n", strerror(errno));
         }
-        sem_post(ta->sock_lock);
-        sem_wait(ta->sock_lock);
+        //sem_post(ta->sock_lock);
+        //sem_wait(ta->sock_lock);
         //std::cout << "\nINBOX SIZE: " << ta->inbox->size() << "\n";
         if (recv(sock_fd, buffer, BUFSIZ, 0) < 0) {
             fprintf(stderr, "recv failed: %s\n", strerror(errno));
-            sem_post(ta->sock_lock);
+            //sem_post(ta->sock_lock);
             continue;
         }
-        sem_post(ta->sock_lock);
+        //sem_post(ta->sock_lock);
         //std::cout << "RETRIEVE recieved [" << buffer << "]\n"; 
         sem_wait(ta->callback_lock);
         ta->inbox->push_back(buffer);
         sem_post(ta->callback_lock);
-        */
+        
     }
+    
     return NULL;
 }
 

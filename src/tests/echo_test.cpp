@@ -28,9 +28,9 @@ void *echo_generator(void *arg) {
         sleep(1);
         printf("PUBLISH TO %s: %s\n", ECHO_TOPIC, message);
     }
-    std::cout << "before disconnect!\n";
+    //std::cout << "before disconnect!\n";
     client->disconnect();
-    std::cout << "after disconnect!\n";
+    //std::cout << "after disconnect!\n";
     return NULL;
 }
 
@@ -51,11 +51,11 @@ int main(int argc, char *argv[]) {
     EchoCallback e;
 
     generator.start(echo_generator, (void *)&client);
-    std::cout << "before detach!\n";
+    //std::cout << "before detach!\n";
     generator.detach();
-    std::cout << "before subscribe!\n";
+    //std::cout << "before subscribe!\n";
     client.subscribe(ECHO_TOPIC, &e);
-    std::cout << "before run!\n";
+    //std::cout << "before run!\n";
     client.run();
 
     return EXIT_SUCCESS;
