@@ -26,11 +26,11 @@ Client::Client(const char *host, const char *port, const char *cid) {
     this->port = port;
     this->cid = cid;
     Message iMessage;
-    iMessage.topic = "IDENTIFY";
+    iMessage.type = "IDENTIFY";
     iMessage.sender = cid;
     iMessage.nonce = rand()%1000;
     this->nonce = iMessage.nonce;
-    outMessages.push_back(iMessage);
+    outMessages.push_front(iMessage);
 }
 
 Client::~Client() {}
@@ -48,7 +48,7 @@ void Client::publish(const char *topic, const char *message, size_t length){
     };
 
     sem_wait(&out_lock);
-	std::cout << "temp_message: " << temp_message.type << std::endl;
+	//std::cout << "temp_message: " << temp_message.type << std::endl;
     outMessages.push_back(temp_message);
     sem_post(&out_lock);
 }
@@ -107,6 +107,7 @@ void Client::run() {
     Thread  publisher;
     Thread  receiver;
     Thread  callbacks;
+    std::cout << "outMessages.front: " << outMessages.front().type << "\n";
     publisher.start(publishing_thread,(void*)&arg);
     publisher.detach();
     receiver.start(receiving_thread, (void*)&arg);

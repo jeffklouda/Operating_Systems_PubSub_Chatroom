@@ -12,7 +12,7 @@
 void* publishing_thread(void* arg){
     struct thread_args *ta = (struct thread_args *) arg;
     Socket publishing_socket;
-	int sock_fd = publishing_socket.sock_connect(ta->host, ta->port);
+    int sock_fd = publishing_socket.sock_connect(ta->host, ta->port);
     
     while(true){
         if(!ta->out_messages->empty()){
@@ -26,11 +26,11 @@ void* publishing_thread(void* arg){
             std::string msg_type = msg_to_post.type;
             //std::cout << "msg_type [" << msg_type << "]\n";
             if (msg_type == "MESSAGE"){
-                std::cout << "IN Publish\n" << std::endl;
+                //std::cout << "IN Publish\n" << std::endl;
                 std::string msg_line = "PUBLISH " + msg_to_post.topic + " " + std::to_string(msg_to_post.body.size()) + "\n" + msg_to_post.body;
                 sem_wait(ta->sock_lock);
                 if (send(sock_fd, msg_line.c_str(), msg_line.size(), 0) < 0){
-                    std::cout << "send MESSAGE failed\n";
+                    fprintf(stderr, "send MESSAGE failed: %s\n", strerror(errno));
                 }
                 sem_post(ta->sock_lock);
             }else if (msg_type == "IDENTIFY"){
@@ -72,8 +72,8 @@ void* publishing_thread(void* arg){
                 std::cout << "Error: Could not understand message type. Message title is: " << msg_type << "]" << std::endl;
             }
         }
-
     }
+    publishing_socket.sock_disconnect();
     return NULL;
 }
 
@@ -82,21 +82,28 @@ void* receiving_thread(void* arg){
     Socket receiving_socket;
 	int sock_fd = receiving_socket.sock_connect(ta->host, ta->port);
 
+    //  send retrieval message
+    std::string rMessage = "RETRIEVE " + std::string(ta->cid) + "\n";
     char buffer[BUFSIZ];
     while (true){
-        std::cout << "BEFORESOCKLOCK#$#$#$#$\n";
-        //sem_wait(ta->sock_lock);
-        std::cout << "\nINBOX SIZE: " << ta->inbox->size() << "\n";
+        /*sem_wait(ta->sock_lock);
+        if (send(sock_fd, rMessage.c_str(), rMessage.size(), 0) < 0) {
+            fprintf(stderr,"send RETRIEVE failed: %s\n", strerror(errno));
+        }
+        sem_post(ta->sock_lock);
+        sem_wait(ta->sock_lock);
+        //std::cout << "\nINBOX SIZE: " << ta->inbox->size() << "\n";
         if (recv(sock_fd, buffer, BUFSIZ, 0) < 0) {
-            std::cout << "HEY WE DIDNT GET SOMETHING:(((((((((((((((((((((\n";
-            //sem_post(ta->sock_lock);
+            fprintf(stderr, "recv failed: %s\n", strerror(errno));
+            sem_post(ta->sock_lock);
             continue;
         }
-        std::cout << "HEY WE GOT SOMETHING**((**((**\n";
-        //sem_post(ta->sock_lock);
+        sem_post(ta->sock_lock);
+        //std::cout << "RETRIEVE recieved [" << buffer << "]\n"; 
         sem_wait(ta->callback_lock);
         ta->inbox->push_back(buffer);
         sem_post(ta->callback_lock);
+        */
     }
     return NULL;
 }
@@ -109,6 +116,7 @@ void* callbacks_thread(void* arg){
         size_t start = 0;
         size_t end = message.find(" ");
         if (message.substr (start, end - start - 1) == "MESSAGE") {
+            std::cout << "Processing: " << message << std::endl;
             //  Process message with callback map
             Message pMessage;
             pMessage.type = "MESSAGE";
