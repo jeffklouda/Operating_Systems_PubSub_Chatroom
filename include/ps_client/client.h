@@ -31,18 +31,7 @@ class EchoCallback : public Callback{
         void run(Message&);
 };
 
-struct thread_args {
-    const char* host;
-    const char* port;
-    const char* cid;
-    size_t      nonce;
-    std::deque<Message> *out_messages;
-    std::deque<std::string> *inbox;
-    std::map<std::string, Callback*> *message_callbacks;
-    sem_t* out_lock;
-    sem_t* callback_lock;
-    sem_t* sock_lock;
-};
+
 
 typedef void* (*thread_func)(void*);
 
@@ -84,6 +73,19 @@ class Client{
 };
 
 
+struct thread_args {
+    const char* host;
+    const char* port;
+    const char* cid;
+    size_t      nonce;
+    std::deque<Message> *out_messages;
+    std::deque<std::string> *inbox;
+    std::map<std::string, Callback*> *message_callbacks;
+    sem_t* out_lock;
+    sem_t* callback_lock;
+    sem_t* sock_lock;
+    Client* client;
+};
 
 class Thread{
     public:
