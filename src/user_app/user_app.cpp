@@ -28,9 +28,17 @@ void *echo_generator(void *arg) {
         printf("PUBLISH TO %s: %s\n", ECHO_TOPIC, message);
     }*/
     while (true) {
-        std::string user_message;
+        char c = 'a';
+        while (c != 'm' ) {
+            std::cin.get(c);
+        }
+        c = 'a';
+        sem_wait(client->get_io_lock());
+        std::string user_message = "";
         std::cout << "Enter your message: ";
-        std::cin >> user_message;
+        std::cin.ignore();
+        std::getline(std::cin, user_message);
+        sem_post(client->get_io_lock());
         client->publish(CHAT_TOPIC, user_message.c_str(), user_message.length());
     }
     //std::cout << "before disconnect!\n";

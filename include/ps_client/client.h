@@ -59,6 +59,7 @@ class Client{
         void disconnect();
         void run();
         bool shutdown();
+        sem_t* get_io_lock();
     private:
         const char*         name;
         const char*         host;
@@ -73,6 +74,7 @@ class Client{
         sem_t               out_lock;
         sem_t               callback_lock;
         sem_t               sock_lock;
+        sem_t               io_lock;
 };
 
 
@@ -87,6 +89,7 @@ struct thread_args {
     sem_t* out_lock;
     sem_t* callback_lock;
     sem_t* sock_lock;
+    sem_t* io_lock;
     Client* client;
 };
 

@@ -21,6 +21,7 @@ Client::Client(const char *host, const char *port, const char *cid) {
     sem_init (&out_lock, 0, 1);
     sem_init (&callback_lock, 0, 1);
     sem_init (&sock_lock, 0, 1);
+    sem_init (&io_lock, 0, 1);
 	this->disconnect_msg = false;
     this->host = host;
     this->port = port;
@@ -90,6 +91,7 @@ void Client::run() {
         &out_lock,
         &callback_lock,
         &sock_lock,
+        &io_lock,
         this
     };
     Thread  publisher;
@@ -113,4 +115,6 @@ bool Client::shutdown() {
     return result;
 }
 
-
+sem_t* Client::get_io_lock() {
+    return &io_lock;
+}

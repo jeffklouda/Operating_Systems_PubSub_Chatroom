@@ -181,7 +181,9 @@ void* callbacks_thread(void* arg){
             std::map<std::string, Callback*>::iterator it;
             it = ta->message_callbacks->find(pMessage.topic);
             if (it != ta->message_callbacks->end()) {
-                it->second->run(pMessage);
+                sem_wait(ta->io_lock);          
+                    it->second->run(pMessage);
+                sem_post(ta->io_lock);
             }
         }
     }
