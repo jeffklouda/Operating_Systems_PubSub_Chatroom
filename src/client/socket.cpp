@@ -23,12 +23,13 @@ int Socket::sock_connect(const char* host, const char* port) {
 
 
     struct addrinfo hints;
+    memset(&hints, 0, sizeof(hints));
     hints.ai_family      = AF_UNSPEC;       // return IPv4 and IPv6 choices
     hints.ai_socktype    = SOCK_STREAM;     // Use TCP
     hints.ai_flags       = AI_PASSIVE;      // Use all interfaces
 
     struct addrinfo* results;
-    int status;
+    int status=0;
 
     if ((status = getaddrinfo(host, port, &hints, &results)) != 0) {
 

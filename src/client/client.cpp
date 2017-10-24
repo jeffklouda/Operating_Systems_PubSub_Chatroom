@@ -26,6 +26,7 @@ Client::Client(const char *host, const char *port, const char *cid) {
     this->host = host;
     this->port = port;
     this->cid = cid;
+    this->name = cid;
 }
 
 Client::~Client() {}

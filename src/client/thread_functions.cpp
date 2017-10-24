@@ -95,7 +95,7 @@ void* receiving_thread(void* arg){
     //  send retrieval message
     std::string rMessage = "RETRIEVE " + std::string(ta->cid) + "\n";
     while (!ta->client->shutdown()){
-        char buffer_2[BUFSIZ];
+        char buffer_2[BUFSIZ] = "";
         sem_wait(ta->sock_lock);
         if (fputs(rMessage.c_str(), fp) == EOF) {
             fprintf(stderr,"send RETRIEVE failed: %s\n", strerror(errno));
@@ -112,7 +112,7 @@ void* receiving_thread(void* arg){
 
         int length_num = stoi(to_parse.substr(start_length, to_parse.size() - start_length));
 
-        char buffer_3[BUFSIZ];
+        char buffer_3[BUFSIZ] = "";
         fread(buffer_3, 1, length_num, fp);
 
         std::string to_push = std::string(buffer_2) + std::string(buffer_3);
