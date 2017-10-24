@@ -61,7 +61,6 @@ int Socket::sock_connect(const char* host, const char* port) {
     freeaddrinfo(results);
 
     this->sfd = socket_fd;
-    std::cout << "Connected successfully. socket_fd: " << socket_fd << std::endl;
     return socket_fd;
 }   
 
