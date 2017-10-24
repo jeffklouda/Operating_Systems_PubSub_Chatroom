@@ -115,6 +115,54 @@ bool Client::shutdown() {
     return result;
 }
 
+const char* Client::get_name() {
+    return name;
+}
+
+const char* Client::get_host() {
+    return host;
+}
+
+const char* Client::get_cid() {
+    return cid;
+}
+
+size_t Client::get_nonce() {
+    return nonce;
+}
+
+bool Client::get_disconnect_msg() {
+    return disconnect_msg;
+}
+
+int Client::get_socket_fd() {
+    return socket_fd;
+}
+
+std::deque<Message>* Client::get_outMessages() {
+    return &outMessages;
+}
+
+std::deque<std::string>* Client::get_inbox() {
+    return &inbox;
+}
+
+std::map<std::string, Callback*>* Client::get_topicCallbacks() {
+    return &topicCallbacks;
+}
+
+sem_t* Client::get_out_lock() {
+    return &out_lock;
+}
+
+sem_t* Client::get_callback_lock() {
+    return &callback_lock;
+}
+
+sem_t* Client::get_sock_lock() {
+    return &sock_lock;
+}
+
 sem_t* Client::get_io_lock() {
     return &io_lock;
 }

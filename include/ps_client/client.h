@@ -59,7 +59,22 @@ class Client{
         void disconnect();
         void run();
         bool shutdown();
-        sem_t* get_io_lock();
+
+        const char*                         get_name();
+        const char*                         get_host();
+        const char*                         get_port();
+        const char*                         get_cid();
+        size_t                              get_nonce();
+        bool                                get_disconnect_msg();
+        int                                 get_socket_fd();
+        std::deque<Message>*                get_outMessages();
+        std::deque<std::string>*            get_inbox();
+        std::map<std::string, Callback*>*   get_topicCallbacks();
+        sem_t*                              get_out_lock();
+        sem_t*                              get_callback_lock();
+        sem_t*                              get_sock_lock();
+        sem_t*                              get_io_lock();
+
     private:
         const char*         name;
         const char*         host;
