@@ -34,21 +34,15 @@ void* publishing_thread(void* arg){
         exit(EXIT_FAILURE);
     }
 
-    //while(true){
     while(!ta->client->shutdown()){
         if(!ta->out_messages->empty()){
-            //std::cout << "OUTBOX SIZE: " << ta->out_messages->size() << std::endl;
             sem_wait(ta->out_lock);
             Message msg_to_post = ta->out_messages->front();
-            //std::cout << "msg_to_post type before: [" << msg_to_post.type << "]" << std::endl;
             ta->out_messages->pop_front();
             sem_post(ta->out_lock);
-            //std::cout << "msg_to_post type after: " << msg_to_post.type << std::endl;
             std::string msg_type = msg_to_post.type;
-            //std::cout << "sending msg_type [" << msg_type << "]\n";
             std::string good_line = "";
             if (msg_type == "MESSAGE"){
-                //std::cout << "IN Publish\n" << std::endl;
                 good_line = "PUBLISH " + msg_to_post.topic + " " + std::to_string(msg_to_post.body.size()) + "\n" + msg_to_post.body;
             }else if (msg_type == "IDENTIFY"){
                 good_line = "IDENTIFY " + std::string(ta->cid) + " " + std::to_string(ta->nonce) + "\n";
@@ -62,9 +56,7 @@ void* publishing_thread(void* arg){
                 good_line = "DISCONNECT " + std::string(ta->cid) + " " + std::to_string(ta->nonce) + "\n";
             }else{
                 std::cout << "Error: Could not understand message type. Message title is: " << msg_type << "]" << std::endl;
-                //exit(EXIT_FAILURE);
             }
-            //std::cout << "MESSASGE STATEMENT:{\n" << good_line << "}\n";
  
             sem_wait(ta->sock_lock);         
             if (fputs(good_line.c_str(), fp) == EOF){
@@ -102,35 +94,23 @@ void* receiving_thread(void* arg){
 
     //  send retrieval message
     std::string rMessage = "RETRIEVE " + std::string(ta->cid) + "\n";
-    //std::cout << "rMessage: " << rMessage << std::endl; 
-    //while(true){
     while (!ta->client->shutdown()){
         char buffer_2[BUFSIZ];
-        //sem_wait(ta->sock_lock);
         sem_wait(ta->sock_lock);
         if (fputs(rMessage.c_str(), fp) == EOF) {
             fprintf(stderr,"send RETRIEVE failed: %s\n", strerror(errno));
             exit(EXIT_FAILURE);
         }
         sem_post(ta->sock_lock);
-        //sem_post(ta->sock_lock);
-        //sem_wait(ta->sock_lock);
-        //std::cout << "\nINBOX SIZE: " << ta->inbox->size() << "\n";
-        //std::cout << "BEFORE\n";
         if (fgets(buffer_2, BUFSIZ, fp)==NULL) {
-            fprintf(stderr, "Second receiving failed: %s\n", strerror(errno));
-            //sem_post(ta->sock_lock);
             exit(EXIT_FAILURE);
         }
-        //std::cout <<"BUFFER: " << buffer << std::endl;
 
         std::string to_parse = buffer_2;
 
         size_t start_length = to_parse.find("LENGTH")+7;
 
         int length_num = stoi(to_parse.substr(start_length, to_parse.size() - start_length));
-
-        //std::cout << "length_num " << length_num << std::endl;     
 
         char buffer_3[BUFSIZ];
         fread(buffer_3, 1, length_num, fp);
@@ -141,7 +121,6 @@ void* receiving_thread(void* arg){
         memset(&buffer_3[0], 0, BUFSIZ);
 
         ta->inbox->push_back(to_push);
-        //sem_post(ta->callback_lock);
         
     }
     
