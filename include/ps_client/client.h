@@ -31,7 +31,10 @@ class EchoCallback : public Callback{
         void run(Message&);
 };
 
-
+class ChatCallback : public Callback {
+    public:
+        void run(Message&);
+};
 
 typedef void* (*thread_func)(void*);
 
