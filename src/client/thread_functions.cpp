@@ -15,15 +15,26 @@ void* publishing_thread(void* arg){
     struct thread_args *ta = (struct thread_args *) arg;
     Socket publishing_socket;
     int sock_fd = publishing_socket.sock_connect(ta->host, ta->port);
+    char buffer[BUFSIZ];
 
     FILE* fp = fdopen(sock_fd, "w+");    
 
     std::string identify_string = "IDENTIFY " + std::string(ta->cid) + " " + std::to_string(ta->nonce) + "\n";
 
     sem_wait(ta->sock_lock);
-    fputs(identify_string.c_str(), fp);
+    if (fputs(identify_string.c_str(), fp) == EOF){
+        fprintf(stderr, "PUBLISH Failed: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
     sem_post(ta->sock_lock);
 
+   
+    if(fgets(buffer, BUFSIZ, fp)==NULL){
+        fprintf(stderr, "First publishing fgets failed: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    //while(true){
     while(!ta->client->shutdown()){
         if(!ta->out_messages->empty()){
             //std::cout << "OUTBOX SIZE: " << ta->out_messages->size() << std::endl;
@@ -34,59 +45,35 @@ void* publishing_thread(void* arg){
             sem_post(ta->out_lock);
             //std::cout << "msg_to_post type after: " << msg_to_post.type << std::endl;
             std::string msg_type = msg_to_post.type;
-            std::cout << "sending msg_type [" << msg_type << "]\n";
+            //std::cout << "sending msg_type [" << msg_type << "]\n";
             std::string good_line = "";
             if (msg_type == "MESSAGE"){
                 //std::cout << "IN Publish\n" << std::endl;
                 good_line = "PUBLISH " + msg_to_post.topic + " " + std::to_string(msg_to_post.body.size()) + "\n" + msg_to_post.body;
-                sem_wait(ta->sock_lock);
-                if (fputs(good_line.c_str(), fp) == EOF){
-                    fprintf(stderr, "send MESSAGE failed: %s\n", strerror(errno));
-                }
-                sem_post(ta->sock_lock);
             }else if (msg_type == "IDENTIFY"){
                 good_line = "IDENTIFY " + std::string(ta->cid) + " " + std::to_string(ta->nonce) + "\n";
-                sem_wait(ta->sock_lock);
-                if (fputs(good_line.c_str(), fp) == EOF){
-                    std::cout << "send IDENTIFY failed\n";
-                }
-                sem_post(ta->sock_lock);
             }else if (msg_type == "SUBSCRIBE"){
                 good_line = "SUBSCRIBE " + msg_to_post.topic + "\n";
-                sem_wait(ta->sock_lock);
-                if (fputs(good_line.c_str(), fp) == EOF){
-                    std::cout << "send SUBSCRIBE failed\n";
-                }
-                sem_post(ta->sock_lock);
             }else if (msg_type == "UNSUBSCRIBE"){
                 good_line = "UNSUBSCRIBE " + msg_to_post.topic + "\n";
-                sem_wait(ta->sock_lock);
-                if (fputs(good_line.c_str(), fp) == EOF){
-                    std::cout << "send UNSUBSCRIBE failed\n";
-                }
-                sem_post(ta->sock_lock);
             }else if (msg_type == "RETRIEVE"){
                 good_line = "RETRIEVE " + std::string(ta->cid) + "\n";
-                sem_wait(ta->sock_lock);
-                if (fputs(good_line.c_str(), fp) == EOF){
-                    std::cout << "send RETRIEVE failed\n";
-                }
-                sem_post(ta->sock_lock);
             }else if (msg_type == "DISCONNECT"){
                 good_line = "DISCONNECT " + std::string(ta->cid) + " " + std::to_string(ta->nonce) + "\n";
-                sem_wait(ta->sock_lock);
-                if (fputs(good_line.c_str(), fp) == EOF){
-                    std::cout << "send DISCONNECT failed\n";
-                }
-                sem_post(ta->sock_lock);
             }else{
                 std::cout << "Error: Could not understand message type. Message title is: " << msg_type << "]" << std::endl;
                 //exit(EXIT_FAILURE);
             }
-            std::cout << "MESSASGE STATEMENT:{\n" << good_line << "}\n";
-            char buffer[BUFSIZ];
-            if (fgets(buffer, BUFSIZ, fp)){
-                std::cout << "fgets failed\n";
+            //std::cout << "MESSASGE STATEMENT:{\n" << good_line << "}\n";
+ 
+            sem_wait(ta->sock_lock);         
+            if (fputs(good_line.c_str(), fp) == EOF){
+                fprintf(stderr, "PUBLISH Failed: %s\n", strerror(errno));
+            }
+            sem_post(ta->sock_lock); 
+
+            if (fgets(buffer, BUFSIZ, fp)==NULL){
+                fprintf(stderr, "Second Publishing fgets failed: %s\n", strerror(errno));
                 exit(EXIT_FAILURE);
             }
         }
@@ -99,7 +86,7 @@ void* receiving_thread(void* arg){
     struct thread_args *ta = (struct thread_args *) arg;
     Socket receiving_socket;
 	int sock_fd = receiving_socket.sock_connect(ta->host, ta->port);
-
+    char buffer[BUFSIZ];
     FILE* fp = fdopen(sock_fd, "w+");
 
     std::string identify_string = "IDENTIFY " + std::string(ta->cid) + " " + std::to_string(ta->nonce) + "\n";
@@ -108,30 +95,49 @@ void* receiving_thread(void* arg){
     fputs(identify_string.c_str(), fp);
     sem_post(ta->sock_lock);
 
+    if (fgets(buffer, BUFSIZ, fp)==NULL){
+        fprintf(stderr, "First receiving fgets failed: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
     //  send retrieval message
     std::string rMessage = "RETRIEVE " + std::string(ta->cid) + "\n";
-    char buffer[BUFSIZ];
+    //std::cout << "rMessage: " << rMessage << std::endl; 
+    //while(true){
     while (!ta->client->shutdown()){
+        char buffer_2[BUFSIZ];
         //sem_wait(ta->sock_lock);
         sem_wait(ta->sock_lock);
         if (fputs(rMessage.c_str(), fp) == EOF) {
             fprintf(stderr,"send RETRIEVE failed: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
         }
         sem_post(ta->sock_lock);
         //sem_post(ta->sock_lock);
         //sem_wait(ta->sock_lock);
         //std::cout << "\nINBOX SIZE: " << ta->inbox->size() << "\n";
         //std::cout << "BEFORE\n";
-        if (fgets(buffer, BUFSIZ, fp)) {
-            fprintf(stderr, "recv failed: %s\n", strerror(errno));
+        if (fgets(buffer_2, BUFSIZ, fp)==NULL) {
+            fprintf(stderr, "Second receiving failed: %s\n", strerror(errno));
             //sem_post(ta->sock_lock);
             exit(EXIT_FAILURE);
         }
-        //std::cout << "AFTER: " << buffer << std::endl;
-        //sem_post(ta->sock_lock);
-        //std::cout << "RETRIEVE recieved [" << buffer << "]\n"; 
-        //sem_wait(ta->callback_lock);
-        ta->inbox->push_back(buffer);
+        //std::cout <<"BUFFER: " << buffer << std::endl;
+
+        std::string to_parse = buffer_2;
+
+        size_t start_length = to_parse.find("LENGTH")+7;
+
+        int length_num = stoi(to_parse.substr(start_length, to_parse.size() - start_length));
+
+        //std::cout << "length_num " << length_num << std::endl;     
+
+        char buffer_3[BUFSIZ];
+        fread(buffer_3, 1, length_num, fp);
+
+        std::string to_push = std::string(buffer_2) + std::string(buffer_3);
+
+        ta->inbox->push_back(to_push);
         //sem_post(ta->callback_lock);
         
     }
@@ -146,8 +152,7 @@ void* callbacks_thread(void* arg){
         ta->inbox->pop_front();
         size_t start = 0;
         size_t end = message.find(" ");
-        if (message.substr (start, end - start - 1) == "MESSAGE") {
-            std::cout << "Processing: " << message << std::endl;
+        if (message.substr (start, end - start) == "MESSAGE") {
             //  Process message with callback map
             Message pMessage;
             pMessage.type = "MESSAGE";
@@ -155,21 +160,20 @@ void* callbacks_thread(void* arg){
             start = message.find("MESSAGE");
             start = start + 8;
             end = message.find(" ", start);
-            pMessage.topic = message.substr(start, end - 1);
+            pMessage.topic = message.substr(start, end-start);
             start = end + 1;
             //  get sender
             start = message.find("FROM", start) + 5;
             end = message.find(" ", start);
-            pMessage.sender = message.substr(start, end - 1);
+            pMessage.sender = message.substr(start, end-start);
             start = end + 1;
             //  get length
             start = message.find("LENGTH", start) + 7;
-            end = message.find(" ", start);
-            pMessage.length = std::stoi(message.substr(start, end-1));
-            //  get body
-            start = end + 1;
             end = message.find("\n", start);
-            pMessage.body = message.substr(start, end);
+            pMessage.length = std::stoi(message.substr(start, end-start));
+            //  get body
+            start = end+1;
+            pMessage.body = message.substr(start, message.length()-start);
             //  Look up topic in map
             std::map<std::string, Callback*>::iterator it;
             it = ta->message_callbacks->find(pMessage.topic);

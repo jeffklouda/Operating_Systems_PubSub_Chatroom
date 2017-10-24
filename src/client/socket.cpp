@@ -51,8 +51,8 @@ int Socket::sock_connect(const char* host, const char* port) {
 
         if ( connect(socket_fd, rp->ai_addr, rp->ai_addrlen) < 0 ) {
 
-            fprintf(stderr, "Client: Unable to connect: %s\n",
-                strerror(errno));
+    //        fprintf(stderr, "Client: Unable to connect: %s\n",
+    //            strerror(errno));
             socket_fd = -1;
             continue;
         }

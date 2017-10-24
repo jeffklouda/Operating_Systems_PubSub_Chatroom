@@ -25,12 +25,6 @@ Client::Client(const char *host, const char *port, const char *cid) {
     this->host = host;
     this->port = port;
     this->cid = cid;
-    //Message iMessage;
-    //iMessage.type = "IDENTIFY";
-    //iMessage.sender = cid;
-    //iMessage.nonce = rand()%1000;
-    //this->nonce = iMessage.nonce;
-    //outMessages.push_front(iMessage);
 }
 
 Client::~Client() {}
@@ -47,10 +41,7 @@ void Client::publish(const char *topic, const char *message, size_t length){
         str_message
     };
 
-    //sem_wait(&out_lock);
-	//std::cout << "temp_message: " << temp_message.type << std::endl;
     outMessages.push_back(temp_message);
-    //sem_post(&out_lock);
 }
 
 void Client::subscribe(const char *topic, Callback *callback) {
@@ -62,9 +53,7 @@ void Client::subscribe(const char *topic, Callback *callback) {
     newTopicCallback = std::make_pair(topic, callback);
     topicCallbacks.insert (newTopicCallback);
 
-    //sem_wait(&out_lock);
     outMessages.push_back(subMessage);
-    //sem_post(&out_lock);
 }
 
 void Client::unsubscribe(const char *topic) {
@@ -74,9 +63,7 @@ void Client::unsubscribe(const char *topic) {
     unsubMessage.sender = cid;
     topicCallbacks.erase (topicCallbacks.find(topic));
 
-    //sem_wait(&out_lock);
     outMessages.push_back(unsubMessage);
-    //sem_post(&out_lock);
 }
 
 void Client::disconnect() {
@@ -85,9 +72,7 @@ void Client::disconnect() {
     dMessage.sender = this->cid;
     dMessage.nonce = this->nonce;
 
-    //sem_wait(&out_lock);
     outMessages.push_back(dMessage);
-    //sem_post(&out_lock);
     sem_wait(&out_lock);
     disconnect_msg = true;
     sem_post(&out_lock);
@@ -110,16 +95,13 @@ void Client::run() {
     Thread  publisher;
     Thread  receiver;
     Thread  callbacks;
-    std::cout << "outMessages.front: " << outMessages.front().type << "\n";
     publisher.start(publishing_thread,(void*)&arg);
     publisher.detach();
     receiver.start(receiving_thread, (void*)&arg);
     receiver.detach();
     while (!shutdown()){
-        signal(SIGPIPE, SIG_IGN);
         callbacks_thread((void*)&arg);
     }
-    std::cout << "AFTER SHUTDOWN\n";
     pthread_cancel(publisher.get_thread_var());
     pthread_cancel(receiver.get_thread_var());
 }
