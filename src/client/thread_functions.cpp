@@ -137,6 +137,9 @@ void* receiving_thread(void* arg){
 
         std::string to_push = std::string(buffer_2) + std::string(buffer_3);
 
+        memset(&buffer_2[0], 0, BUFSIZ);
+        memset(&buffer_3[0], 0, BUFSIZ);
+
         ta->inbox->push_back(to_push);
         //sem_post(ta->callback_lock);
         
