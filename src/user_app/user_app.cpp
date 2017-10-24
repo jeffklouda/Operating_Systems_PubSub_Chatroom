@@ -7,6 +7,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <iostream>
+#include <limits>
 
 // C++ PROJECT INCLUDES
 #include <ps_client/client.h>
@@ -29,14 +30,14 @@ void *echo_generator(void *arg) {
     }*/
     while (true) {
         char c = 'a';
-        while (c != 'm' ) {
-            std::cin.get(c);
-        }
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+        //std::cin.ignore();
         c = 'a';
         sem_wait(client->get_io_lock());
         std::string user_message = "";
         std::cout << "Enter your message: ";
-        std::cin.ignore();
+        //std::cin.clear();
+        //std::cin.ignore();
         std::getline(std::cin, user_message);
         sem_post(client->get_io_lock());
         client->publish(CHAT_TOPIC, user_message.c_str(), user_message.length());
