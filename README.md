@@ -43,9 +43,11 @@ Design
 >
 >   - What does the `Callback` class need to keep track of?
 >
->       
+>   The `Callback` class needs to keep track of the message it is being called on as well as the function to run using that message.
 >
 >   - How will applications use this `Callback` class?
+>
+>   Applications will use the `Callback` class to run callback functions related to a certain topic each time it receives a message of that topic.
 
 > 3. The client library needs to provide a `Message` struct.
 >
@@ -68,12 +70,20 @@ Design
 > 5. You will need to perform testing on your client library.
 >
 >   - How will you test your client library?
+>   
+>   We will test our client library using both unit tests to test our individual classes, structures, and functions as well as functional tests to verify that the library operates correctly in an application.
 >
 >   - What will `echo_test` tell you?
 >
+>   `echo_test` will serve as a functional test. If it runs correctly, it will tell us that our library is functioning correctly when used by an application.
+>
 >   - How will you use the Google Test framework?
 >
+>   We will use the Google Test framework to write and run unit tests for our classes, structures and functions.
+>
 >   - How will you incorporate testing at every stage of development?
+>
+>   We will incorporate testing at every stage of development by writing and running unit tests for every element of our solution as we complete it and by running our functional tests once our solution is complete.
 
 Response.
 
@@ -82,15 +92,23 @@ Response.
 >
 >   - What distributed and parallel application do you plan on building?
 >
+>   We plan to build a chatroom application.
+>
 >   - How will utilize the client library?
+>
+>   We will use ultilize the client library by running a different client for every user connected to the chatroom, publishing their messages to a topic and allowing tem to receive messages related to that topic.
 >
 >   - What topics will you need?
 >
+>   We will need only one `chat` topic to which all users will subscribe.
+>
 >   - What callbacks will you need?
 >
+>   We will need a chat-related callback that diplays the message along with the name of the client who sent that message.
+>
 >   - What additional threads will you need?
-
-Response.
+>
+>   Each user will require an additional thread for entering messages while the client is publishing and receiving messages. 
 
 Demonstration
 -------------
@@ -103,6 +121,7 @@ Errata
 ------
 
 > Describe any known errors, bugs, or deviations from the requirements.
+> Our library and application are behaving as expected according to our unit and functional tests.
 
 Extra Credit
 ------------
